@@ -1,30 +1,103 @@
 const express=require("express");
 const app=express();
-// const port =process.env.PORT || 3000;
 const bodyParser = require("body-parser");
 const cors=require("cors");
 const mysql=require("./connection")
-// const mysql=require("mysql2")
-// const pool=mysql.createPool({
-//     host:"localhost",
-//     user:"root",
-//     password:"",
-//     database:"react sql",
-//     port:3306
-// })
-
 app.use(cors());
 app.use(express.json())
 app.use(bodyParser.urlencoded({extended:true}));
+const bcrypt = require('bcrypt');
+var jwt = require('jsonwebtoken');
+
+
    
 
-app.get("/api/get",(req,res)=>{
-    const getUser="SELECT * FROM contact_db"
-    mysql.pool.query(getUser,(err,result)=>{
-        res.send(result)
+// app.get("/api/get",(req,res)=>{
+//     const getUser="SELECT * FROM contact_db "
+//     mysql.pool.query(getUser,(err,result)=>{
+//         res.send(result)
+//     })
+// })
+const comparePassword=(password,hashPassword)=>{
+    console.log(bcrypt.compareSync(password,hashPassword))
+    const checkPassword=bcrypt.compareSync(password,hashPassword)
+    return checkPassword
+  
+}
+
+const createToken = (userId) => {
+    const token = jwt.sign({ id: userId }, `655595mokkmkmmkkokomkomokmo`, {
+      expiresIn: "1d",
+    });
+    return token;
+}
+
+app.post("/api/login",(req,res)=>{
+    const {email,password}=req.body
+    console.log("req..body",req.body.password)
+    const checkEmail=`SELECT id,email,password FROM users WHERE email="${email}"` //string values should be in ""
+    console.log("check",checkEmail)
+    mysql.pool.query(checkEmail,(err,checkEmailResult)=>{
+        console.log("res",checkEmailResult)
+        if(checkEmailResult.length>0){
+        //     // res.status(200).send({msg:"email exists"})  we can only give single res.
+          let checkPassStatus=comparePassword(password,checkEmailResult[0].password)
+        if(checkPassStatus){
+                let generatedToken= createToken(checkEmailResult.id) 
+              return res.status(200).send(
+                  {
+                      msg:"user Login successfully" ,
+                     status:200,
+                token:generatedToken,
+                auth:true
+                 })
+         }else{
+              res.status(400).send({msg:"password is incorrect"})
+             }
+
+        }else{
+           res.status(400).send({msg:"email doesnt exist"})
+       }
     })
 })
 
+app.post("/api/register",(req,res)=>{
+    const {name,email,password,image}=req.body
+    console.log('req.body',req.body)
+    const check=`SELECT email FROM users WHERE email="${email}"`
+   console.log("check",check)
+   mysql.pool.query(check,[email],async(err,result)=>{
+       console.log("res",result)
+       if(result.length>0){
+        res.status(400).send({msg:"Email already exists"})
+       }else{
+        const hashpass=await bcrypt.hash(password,10)
+           const registerUser=`INSERT INTO users (name,email,password,image) VALUES ('${name}','${email}','${hashpass}','${image}')`;
+           console.log(registerUser)
+          
+    mysql.pool.query(registerUser,(err,result)=>{
+        console.log("result",result)
+        if(result){
+            res.status(200).send({msg:"user created successfully",status:200})
+        }else{
+            res.status(400).send({msg:"something went wrong",status:400})
+        }
+    })
+       }
+   })
+    
+})
+
+app.post("/api/getPost",(req,res)=>{
+    const {start,limit}=req.body
+    console.log("s",start,limit)
+    const getUser=`SELECT * FROM contact_db LIMIT ${start},${limit}`
+    // console.log("getUSer",getUser)
+    mysql.pool.query(getUser,(err,result)=>{
+        res.send(result)
+        // console.log("res",result)
+    })
+})
 app.post("/api/post",(req,res)=>{
     const {name,email,contact} =req.body
     const insertUser="INSERT INTO contact_db (name,email,contact) VALUES (?,?,?)";
@@ -81,15 +154,6 @@ app.put("/api/update/:id",(req,res)=>{
     })
 })
 
-app.get("/",(req,res)=>{
-//     let qry="INSERT INTO contact_db (name,email,contact) VALUES ('test3','test3@gmail.com','039344559')"
-// // res.send("hello world")
-// mysql.pool.query(qry,(err,results)=>{
-//     console.log("error",err)
-//     console.log("result",results)
-//     res.send("added")
-// })
-})
 
 app.listen(5000,()=>{
     console.log(`server is runnig on port 5000`)
