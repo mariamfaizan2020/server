@@ -48,8 +48,8 @@ app.post("/api/login",(req,res)=>{
                   {
                       msg:"user Login successfully" ,
                      status:200,
-                token:generatedToken,
-                auth:true
+                     token:generatedToken,
+                     auth:true
                  })
          }else{
               res.status(400).send({msg:"password is incorrect"})
@@ -88,71 +88,125 @@ app.post("/api/register",(req,res)=>{
     
 })
 
-app.post("/api/getPost",(req,res)=>{
-    const {start,limit}=req.body
-    console.log("s",start,limit)
-    const getUser=`SELECT * FROM contact_db LIMIT ${start},${limit}`
-    // console.log("getUSer",getUser)
-    mysql.pool.query(getUser,(err,result)=>{
-        res.send(result)
-        // console.log("res",result)
-    })
-})
-app.post("/api/post",(req,res)=>{
-    const {name,email,contact} =req.body
-    const insertUser="INSERT INTO contact_db (name,email,contact) VALUES (?,?,?)";
-    mysql.pool.query(insertUser,[name,email,contact],(err,result)=>{
-        if(err){
-            console.log(err)
-        }else{
-            console.log(result)
-        }
-    })
-})
-
-app.delete("/api/remove/:id",(req,res)=>{
-const {id}=req.params;
-
-    const deleteUser="DELETE FROM contact_db WHERE id=?";
-    mysql.pool.query(deleteUser,id,(err,result)=>{
-        if(err){
-            console.log(err)
-        }else{
-            console.log(result)
-        }
-    })
-})
-
-app.get("/api/get/:id",(req,res)=>{
-    const {id}=req.params
-    const getAUserData=`SELECT * FROM contact_db WHERE id=?`
-
-    mysql.pool.query(getAUserData,id,(err,result)=>{
-        if(err){
-            console.log(err)
-        }else{
+app.post("/api/post/contact",(req,res)=>{
+    const insetEmployee="INSERT INTO employee (id) VALUES (id)"
+    mysql.pool.query(insetEmployee,(err,result)=>{
+    if(result){
+        const insertContactDetails="INSERT INTO contact_db (id,employee_id,name,email,phone,date_of_birth,zipcode,address,state) VALUES (`id,employee_id,?,?,?,?,?,?,?`)"
+        mysql.pool.query(insertContactDetails,(err,result)=>{
+            console.log("res",result)
             res.send(result)
-        }
-  
-    })
+        })
+    }
+   
+    // res.send(res)
+}) 
 })
 
+// app.post("/api/getPost",(req,res)=>{
+//     const {start,limit}=req.body
+//     console.log("s",start,limit)
+//     const getUser=`SELECT * FROM contact_db LIMIT ${start},${limit}`
+//     // console.log("getUSer",getUser)
+//     mysql.pool.query(getUser,(err,result)=>{
+//         res.send(result)
+//         // console.log("res",result)
+//     })
+// })
+// app.post("/api/post",(req,res)=>{
+//     const {name,email,contact} =req.body
+//     const check=`SELECT email FROM contact_db WHERE email="${email}"`
+//     console.log("check",check)
+// mysql.pool.query(check,[email],(err,result)=>{
+//     console.log("res",result)
+//     if(result.length>0){
+//         console.log("email exists")
+//                 res.status(400).send({msg:"Email already exists"})
+//     }else{
+//         const insertUser="INSERT INTO contact_db (name,email,contact) VALUES (?,?,?)";
+//     mysql.pool.query(insertUser,[name,email,contact],(err,result)=>{
+//         if(err){
+//             console.log(err)
+//         }else{
+//             console.log(result)
+//         }
+//     })
 
+//     }
+// })
 
-app.put("/api/update/:id",(req,res)=>{
-    const {id}=req.params
-    const {name,email,contact}=req.body
-    const updateData=`UPDATE contact_db SET name=?, email=?, contact=? WHERE id =?`
+// })
 
-    mysql.pool.query(updateData,[name,email,contact,id],(err,result)=>{
-        if(err){
-            console.log(err)
-        }else{
-            res.send(result)
-        }
+// app.post("/api/register",(req,res)=>{
+//     const {name,email,password,image}=req.body
+//     console.log('req.body',req.body)
+//     const check=`SELECT email FROM users WHERE email="${email}"`
+//    console.log("check",check)
+//    mysql.pool.query(check,[email],async(err,result)=>{
+//        console.log("res",result)
+//        if(result.length>0){
+//         res.status(400).send({msg:"Email already exists"})
+//        }else{
+//         const hashpass=await bcrypt.hash(password,10)
+//            const registerUser=`INSERT INTO users (name,email,password,image) VALUES ('${name}','${email}','${hashpass}','${image}')`;
+//            console.log(registerUser)
+          
+//     mysql.pool.query(registerUser,(err,result)=>{
+//         console.log("result",result)
+//         if(result){
+//             res.status(200).send({msg:"user created successfully",status:200})
+//         }else{
+//             res.status(400).send({msg:"something went wrong",status:400})
+//         }
+//     })
+//        }
+//    })
+    
+// })
+
+// app.delete("/api/remove/:id",(req,res)=>{
+// const {id}=req.params;
+
+//     const deleteUser="DELETE FROM contact_db WHERE id=?";
+//     mysql.pool.query(deleteUser,id,(err,result)=>{
+//         if(err){
+//             console.log(err)
+//         }else{
+//             console.log(result)
+//         }
+//     })
+// })
+
+// app.get("/api/get/:id",(req,res)=>{
+//     const {id}=req.params
+//     const getAUserData=`SELECT * FROM contact_db WHERE id=?`
+
+//     mysql.pool.query(getAUserData,id,(err,result)=>{
+//         if(err){
+//             console.log(err)
+//         }else{
+//             res.send(result)
+//         }
   
-    })
-})
+//     })
+// })
+
+
+
+// app.put("/api/update/:id",(req,res)=>{
+//     const {id}=req.params
+//     const {name,email,contact}=req.body
+//     const updateData=`UPDATE contact_db SET name=?, email=?, contact=? WHERE id =?`
+
+//     mysql.pool.query(updateData,[name,email,contact,id],(err,result)=>{
+//         if(err){
+//             console.log(err)
+//         }else{
+//             res.send(result)
+//         }
+  
+//     })
+// })
 
 
 app.listen(5000,()=>{
